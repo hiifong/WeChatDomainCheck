@@ -8,6 +8,8 @@ from urllib import response
 import jsons
 import requests
 
+requests.packages.urllib3.disable_warnings()
+
 from util import CommonUtil
 
 
@@ -119,3 +121,4 @@ if __name__ == '__main__':
     wechat.weixin_login()
     wechat.check_login()
     wechat.wrfile()
+    print("Done!!!")
