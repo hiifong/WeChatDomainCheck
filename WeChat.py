@@ -1,3 +1,5 @@
+import _thread
+from itertools import count
 import os
 import random
 import sys
@@ -22,7 +24,7 @@ class WechatLogin:
             'Referer': 'https://mp.weixin.qq.com/'
         }
         self.QRImgPath = os.path.split(os.path.realpath(__file__))[0] + os.sep + 'QRcode.jpg'
-        
+
         self.username = input("请输入用户名：")
         self.password = input("请输入密码：")
         self.token = ''
@@ -83,10 +85,9 @@ class WechatLogin:
         json = jsons.loads(response.text)
         redirect_url = json["redirect_url"]
         self.token = redirect_url[redirect_url.rfind("=") + 1:len(redirect_url)]
+        # print("token:" + self.token)
 
     def checkDomain(self, domain):
-        # while True:
-        # print("开始请求！")
         url = "https://mp.weixin.qq.com/misc/checkurl?url=http%3A%2F%2F"
         token = self.token
         url = url + domain + "&f=json&action=check&token=" + token + "&lang=zh_CN&f=json&ajax=1"
@@ -97,7 +98,7 @@ class WechatLogin:
             # 'token': self.token,
             # 'lang': 'zh_CN',
             # 'ajax': 1,
-            'random': random.random()
+            # 'random': random.random()
         }
         response = self.session.get(url, data=data, headers=self.headers, verify=False)
 
@@ -108,12 +109,23 @@ class WechatLogin:
 
     def wrfile(self):
         output = open("./output.txt", "w")
+        bad = open("./bad.txt", "w")
+        count = 0
         with open("./input.txt", "r") as domain:
             for line in domain:
-                if wechat.checkDomain(line)["ret"] == 0 and wechat.checkDomain(line)["err_msg"] == "ok":
-                    output.write(line)
+                count = count + 1
+                if count % 10 == 0:
+                    time.sleep(2)
+                else:
+                    if wechat.checkDomain(line)["ret"] == 0 and wechat.checkDomain(line)["err_msg"] == "ok":
+                        output.write(line)
+                    else:
+                        bad.write(line)
             domain.close()
         output.close()
+        bad.close()
+        print("完成！！！")
+        input()
 
 
 if __name__ == '__main__':
@@ -121,4 +133,3 @@ if __name__ == '__main__':
     wechat.weixin_login()
     wechat.check_login()
     wechat.wrfile()
-    print("Done!!!")
